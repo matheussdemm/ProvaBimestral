@@ -14,13 +14,15 @@ namespace ProvaBimestral.Controllers
             using var connection = new MySqlConnection(connectionString);
             connection.Open();
 
-            var cmd = new MySqlCommand("SELECT id, alternativas FROM perguntas", connection);
+            var cmd = new MySqlCommand("SELECT id, id_pergunta,correta,alternativa FROM perguntas", connection);
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
                 Alternativas u = new Alternativas();
                 u.Id = reader.GetInt32("id");
-                u.Pergunta = reader.GetString("alternativas");
+                u.Id_Pergunta = reader.GetInt32("id_pergunta");
+                u.Id_pergunta = reader.GetString("id_pergunta");
+                u.Id_pergunta = reader.GetString("id_pergunta");
                 IsPerguntas.Add(u);
             }
             connection.Close();
