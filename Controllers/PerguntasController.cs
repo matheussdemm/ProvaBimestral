@@ -43,11 +43,54 @@ namespace ProvaBimestral.Controllers
                 using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-                    var comando = new MySqlCommand(@"Insert into perguntas (Nome) values (?)", connection);
+                    var comando = new MySqlCommand(@"Insert into perguntas (pergunta) values (?)", connection);
                     comando.Parameters.AddWithValue("?", objeto.Pergunta);
                     comando.ExecuteNonQuery();
                 }
 
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                return View();
+            }
+        }
+
+        public ActionResult Delete(int id)
+        {
+            Perguntas model = new Perguntas();
+            using var connection = new MySqlConnection(connectionString);
+            connection.Open();
+            var comando = new MySqlCommand("SELECT id, pergunta FROM perguntas where Id = ?", connection);
+            comando.Parameters.AddWithValue("?", id);
+            using var reader = comando.ExecuteReader();
+            while (reader.Read())
+            {
+                model.Id = reader.GetInt32("id");
+                model.Pergunta = reader.GetString("nome");
+            }
+            connection.Close();
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+
+
+        public ActionResult Delete(Perguntas dados)
+        {
+            try
+            {
+                using (var connection = new MySqlConnection(connectionString))
+                {
+                    connection.Open();
+                    var comando = new MySqlCommand(@"delete from perguntas
+                        where Id = @id", connection);
+
+                    comando.Parameters.AddWithValue("@id", dados.Id);
+                    comando.ExecuteNonQuery();
+
+                    connection.Close();
+                }
                 return RedirectToAction(nameof(Index));
             }
             catch (Exception ex)
