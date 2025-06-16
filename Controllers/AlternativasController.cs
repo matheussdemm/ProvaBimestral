@@ -11,21 +11,34 @@ namespace ProvaBimestral.Controllers
         public IActionResult Index()
         {
             List<Alternativas> IsAlternativas = new List<Alternativas>();
+
             using var connection = new MySqlConnection(connectionString);
             connection.Open();
 
-            var cmd = new MySqlCommand("SELECT id, id_pergunta,correta,alternativa FROM alternativas", connection);
+            var cmd = new MySqlCommand(
+                @"SELECT a.id, a.id_pergunta, a.correta, a.alternativa, p.pergunta
+          FROM alternativas a
+          INNER JOIN perguntas p ON a.id_pergunta = p.id", connection);
+
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                Alternativas u = new Alternativas();
-                u.Id = reader.GetInt32("id");
-                u.Id_Pergunta = reader.GetInt32("id_pergunta");
-                u.Correta = reader.GetBoolean("correta");
-                u.AlternativaTexto = reader.GetString("alternativa");
-                IsAlternativas.Add(u);
+                Alternativas a = new Alternativas
+                {
+                    Id = reader.GetInt32("id"),
+                    Id_Pergunta = reader.GetInt32("id_pergunta"),
+                    Correta = reader.GetBoolean("correta"),
+                    AlternativaTexto = reader.GetString("alternativa"),
+                    Pergunta = new Perguntas
+                    {
+                        Id = reader.GetInt32("id_pergunta"),
+                        Pergunta = reader.GetString("pergunta")
+                    }
+                };
+
+                IsAlternativas.Add(a);
             }
-            connection.Close();
+
             return View(IsAlternativas);
         }
 
@@ -43,10 +56,10 @@ namespace ProvaBimestral.Controllers
                 using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-                    var comando = new MySqlCommand(@"Insert into alternativas (id_pergunta, correta, alternativa) values (?)", connection);
-                    comando.Parameters.AddWithValue("?", objeto.Pergunta);
-                    comando.Parameters.AddWithValue("?", objeto.Correta);
-                    comando.Parameters.AddWithValue("?", objeto.AlternativaTexto);
+                    var comando = new MySqlCommand(@"Insert into alternativas (id_pergunta, correta, alternativa) values (@id_pergunta, @correta, @alternativa)", connection);
+                    comando.Parameters.AddWithValue("@id_pergunta", objeto.Id_Pergunta);
+                    comando.Parameters.AddWithValue("@correta", objeto.Correta);
+                    comando.Parameters.AddWithValue("@alternativa", objeto.AlternativaTexto);
                     comando.ExecuteNonQuery();
                 }
 
@@ -68,7 +81,10 @@ namespace ProvaBimestral.Controllers
             while (reader.Read())
             {
                 model.Id = reader.GetInt32("id");
-                model.Id_Pergunta = reader.GetInt32("id_pergunta");
+                if (!reader.IsDBNull(reader.GetOrdinal("id_pergunta")))
+                {
+                    model.Id_Pergunta = reader.GetInt32("id_pergunta");
+                }
                 model.Correta = reader.GetBoolean("correta");
                 model.AlternativaTexto = reader.GetString("alternativa");
             }

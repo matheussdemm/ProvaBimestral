@@ -34,6 +34,7 @@ namespace ProvaBimestral.Controllers
             return View();
         }
 
+      
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(Perguntas objeto)
@@ -43,8 +44,8 @@ namespace ProvaBimestral.Controllers
                 using (var connection = new MySqlConnection(connectionString))
                 {
                     connection.Open();
-                    var comando = new MySqlCommand(@"Insert into perguntas (pergunta) values (?)", connection);
-                    comando.Parameters.AddWithValue("?", objeto.Pergunta);
+                    var comando = new MySqlCommand(@"INSERT INTO perguntas (pergunta) VALUES (@pergunta)", connection);
+                    comando.Parameters.AddWithValue("@pergunta", objeto.Pergunta);
                     comando.ExecuteNonQuery();
                 }
 
@@ -52,7 +53,9 @@ namespace ProvaBimestral.Controllers
             }
             catch (Exception ex)
             {
-                return View();
+                // Você pode adicionar uma mensagem de erro aqui
+                ViewBag.Erro = "Erro ao salvar a pergunta: " + ex.Message;
+                return View(objeto);
             }
         }
 
